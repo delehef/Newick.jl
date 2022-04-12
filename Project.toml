@@ -1,0 +1,7 @@
+name = "Newick"
+uuid = "22af12fe-4c25-48f5-8734-6879d751aaeb"
+authors = ["Franklin Delehelle <franklin.delehelle@odena.eu>"]
+version = "0.1.0"
+
+[deps]
+Lerche = "d42ef402-04e6-4356-9f73-091573ea58dc"
