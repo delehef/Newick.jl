@@ -15,6 +15,11 @@ Base.show(io::IO, t::Tree) = print(io, prettyprint(t))
 nodes(t::Tree) = t._nodes
 parent(t::Tree, n::Int)  = t[n].parent
 children(t::Tree, n::Int) = t[n].children
+function maptree!(f, t::Tree)
+    for n in keys(t._nodes)
+        t[n].pl = f(t[n].pl)
+    end
+end
 
 isroot(t::Tree, n) = t[n].parent == 0
 isleaf(t::Tree, n) = isempty(t._nodes[n].children)
