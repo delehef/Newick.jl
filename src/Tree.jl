@@ -94,9 +94,12 @@ end
 
 function descendant_leaves(t::Tree, n)
     function rec_descendants(i, ax)
-        append!(ax, t._nodes[i].content)
-        for j in t._nodes[i].children
-            rec_descendants(j, ax)
+        if isleaf(t, i)
+            push!(ax, i)
+        else
+            for j in t._nodes[i].children
+                rec_descendants(j, ax)
+            end
         end
     end
 
