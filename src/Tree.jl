@@ -13,6 +13,7 @@ Base.getindex(t::Tree, i::Int) = return t._nodes[i]
 Base.keys(t::Tree) = keys(t._nodes)
 Base.show(io::IO, t::Tree) = print(io, prettyprint(t))
 nodes(t::Tree) = t._nodes
+children(t::Tree, n::Int) = t[n].children
 
 isroot(t::Tree, n) = n.parent == 0
 isleaf(t::Tree, n) = isempty(t._nodes[n].children)
