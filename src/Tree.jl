@@ -17,6 +17,8 @@ nodes(t::Tree) = t._nodes
 isroot(t::Tree, n) = n.parent == 0
 isleaf(t::Tree, n) = isempty(t._nodes[n].children)
 
+leaves(t::Tree) = filter(n -> isleaf(t, n), keys(t._nodes))
+
 function add_node(t::Tree{T}, value::T; parent::Int = 0, id::Union{Int, Nothing} = nothing) where T
     _id = something(id, isempty(keys(t._nodes)) ? 1 : (maximum(keys(t._nodes)) + 1))
     @assert _id ∉ keys(t._nodes)
