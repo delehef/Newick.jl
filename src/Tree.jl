@@ -78,7 +78,7 @@ end
 
 function ascendance(t::Tree, n::Int)
     x = n
-    r = [n]
+    r = []
     while t[x].parent ≠ 0
         x = t[x].parent
         push!(r, x)
@@ -127,7 +127,7 @@ function mrca(t::Tree, nodes::A) where A <: AbstractSet{Int}
     isempty(nodes) && return 0
     length(nodes) == 1 && return first(nodes)
 
-    ancestries = [ascendance(t, n)[2:end] for n in nodes]
+    ancestries = [ascendance(t, n) for n in nodes]
     for a in ancestries[1]
         if all([a ∈ ancestry for ancestry in ancestries[2:end]])
             return a
