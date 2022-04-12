@@ -1,43 +1,43 @@
 mutable struct Node{T}
-    children :: Vector{Int64}
-    parent :: Int64
-    pl :: T
+    children::Vector{Int}
+    parent::Int
+    pl::T
 end
-internal(n :: Node) = isempty(n.children)
 
 mutable struct Tree{T}
-    _nodes :: Dict{Int64, Node{T}}
+    _nodes::Dict{Int, Node{T}}
 end
 Tree{T}() where T = Tree{T}(Dict())
 
-Base.getindex(t :: Tree, i :: Int) = return t._nodes[i]
-Base.keys(t :: Tree) = keys(t._nodes)
-nodes(t :: Tree) = values(t._nodes)
+Base.getindex(t::Tree, i::Int) = return t._nodes[i]
+Base.keys(t::Tree) = keys(t._nodes)
+Base.show(io::IO, t::Tree) = print(io, prettyprint(t))
+nodes(t::Tree) = values(t._nodes)
 
-function add_node(t :: Tree{T}, value :: T; parent :: Int64 = 0, id :: Union{Int64, Nothing} = nothing) where T
+function add_node(t::Tree{T}, value::T; parent::Int = 0, id::Union{Int, Nothing} = nothing) where T
     _id = something(id, isempty(keys(t._nodes)) ? 1 : (maximum(keys(t._nodes)) + 1))
     @assert _id ∉ keys(t._nodes)
     @assert parent == 0 || parent ∈ keys(t._nodes)
-    t._nodes[_id] = Node{T}(Int64[], parent, value)
+    t._nodes[_id] = Node{T}(Int[], parent, value)
     parent ≠ 0 && push!(t._nodes[parent].children, _id)
     return _id
 end
 
-function plug!(t :: Tree, target :: Int, n :: Int)
+function plug!(t::Tree, target::Int, n::Int)
     @assert n ∉ t._nodes[target].children
 
     t._nodes[n].parent = target
     push!(t._nodes[target].children, n)
 end
 
-function unplug!(t :: Tree, n :: Int)
+function unplug!(t::Tree, n::Int)
     parent = t._nodes[n].parent
     @assert(parent == 0 || n ∈ t._nodes[parent].children)
     t._nodes[n].parent = 0
     parent ≠ 0 && filter!(.≠(n), t._nodes[parent].children)
 end
 
-function unplug!(t :: Tree, parent :: Int, ns :: T) where T <: AbstractArray{Int64}
+function unplug!(t::Tree, parent::Int, ns::A <: AbstractArray{Int})
     for n in ns
         @assert(n ∈ t._nodes[parent].children)
         t._nodes[n].parent = 0
@@ -45,39 +45,26 @@ function unplug!(t :: Tree, parent :: Int, ns :: T) where T <: AbstractArray{Int
     filter!(.!∈(ns), t._nodes[parent].children)
 end
 
-function delete_node!(t :: Tree, n :: Int64)
+function delete_node!(t::Tree, n::Int)
     @assert n ∈ keys(t._nodes)
 
     unplug!(t, n)
     delete!(t._nodes, n)
 end
 
-function delete_nodes!(t :: Tree, ns :: T)  where T <: AbstractArray{Int64}
+function delete_nodes!(t::Tree, ns::T)  where T <: AbstractArray{Int}
     for n in ns
         delete_node!(t, n)
     end
 end
 
 
-function merge_nodes!(t :: Tree, merger :: Int, merged :: Int, f)
-    @assert merger ∈ keys(t)
-    @assert merged ∈ keys(t)
-
-    for n in filter(x -> t._nodes[x].parent == merged, keys(t._nodes))
-        n.parent == merger
-    end
-
-    append!(t._nodes[merger].children, t._nodes[merged].children)
-    f(t._nodes[merger].content, t._nodes[merged].content)
-    delete_node!(t, merged)
-end
-
-function move!(t :: Tree, n :: Int, dest :: Int)
+function move!(t::Tree, n::Int, dest::Int)
     unplug!(t, n)
     plug!(t, dest, n)
 end
 
-function descendants(t :: Tree, n)
+function descendants(t::Tree, n)
     function rec_descendants(i, ax)
         append!(ax, t._nodes[i].children)
         for j in t._nodes[i].children
@@ -90,7 +77,7 @@ function descendants(t :: Tree, n)
     return r
 end
 
-function descendant_leaves(t :: Tree, n)
+function descendant_leaves(t::Tree, n)
     function rec_descendants(i, ax)
         append!(ax, t._nodes[i].content)
         for j in t._nodes[i].children
@@ -103,7 +90,7 @@ function descendant_leaves(t :: Tree, n)
     return r
 end
 
-function topo_depth(t :: Tree, n :: Int64; state = 0)
+function topo_depth(t::Tree, n::Int; state = 0)
     if t[n].parent == 1
         state
     else
@@ -111,7 +98,7 @@ function topo_depth(t :: Tree, n :: Int64; state = 0)
     end
 end
 
-function disp(t :: Tree; start=1, f=identity)
+function prettyprint(t::Tree; start=1)
     function rec_disp(i, depth)
         println(' '^depth, t[i].pl)
 
@@ -124,8 +111,9 @@ function disp(t :: Tree; start=1, f=identity)
 end
 
 
-function to_newick(tree :: Tree)
-    function fmtTree(i :: Int) :: String
+
+function tonewick(tree::Tree)
+    function fmtTree(i::Int)::String
         r = IOBuffer()
         if !isempty(tree[i].children)
             cs = join(filter(x -> !isempty(x), map(c -> fmtTree(c), tree[i].children)), ",")

@@ -47,13 +47,9 @@ struct TreeToNewick <: Transformer end
 
 
 
-test_newick = """
-(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;
-"""
-
 newick_parser = Lark(newick_grammar, parser="lalr", lexer="contextual", start="tree", transformer=TreeToNewick(), debug=false)
 
-function parse_tree(text)
+function fromstr(text :: String)
     function parse_node(parent :: Int, tree :: Tree{NewickNode}, n)
         my_id = add_node(tree, NewickNode(); parent=parent)
 
@@ -84,4 +80,7 @@ function parse_tree(text)
     parse_node(0, tree, Lerche.parse(newick_parser, text))
     return tree
 end
+
+function fromfilename(filename :: String)
+    return fromstr(read(filename, String))
 end
