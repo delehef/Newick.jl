@@ -113,7 +113,7 @@ function topo_depth(t::Tree, n::Int; state = 0)
     end
 end
 
-function mrca(t::Tree, nodes::A) where A <: AbstractArray{Int}
+function mrca(t::Tree, nodes::A) where A <: AbstractSet{Int}
     isempty(nodes) && return 0
     length(nodes) == 1 && return first(nodes)
 
