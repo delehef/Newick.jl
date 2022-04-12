@@ -84,3 +84,4 @@ end
 function fromfilename(filename :: String)
     return fromstr(read(filename, String))
 end
+end

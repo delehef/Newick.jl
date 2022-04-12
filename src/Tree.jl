@@ -12,7 +12,10 @@ Tree{T}() where T = Tree{T}(Dict())
 Base.getindex(t::Tree, i::Int) = return t._nodes[i]
 Base.keys(t::Tree) = keys(t._nodes)
 Base.show(io::IO, t::Tree) = print(io, prettyprint(t))
-nodes(t::Tree) = values(t._nodes)
+nodes(t::Tree) = t._nodes
+
+isroot(t::Tree, n) = n.parent == 0
+isleaf(t::Tree, n) = isempty(t._nodes[n].children)
 
 function add_node(t::Tree{T}, value::T; parent::Int = 0, id::Union{Int, Nothing} = nothing) where T
     _id = something(id, isempty(keys(t._nodes)) ? 1 : (maximum(keys(t._nodes)) + 1))
@@ -37,7 +40,7 @@ function unplug!(t::Tree, n::Int)
     parent ≠ 0 && filter!(.≠(n), t._nodes[parent].children)
 end
 
-function unplug!(t::Tree, parent::Int, ns::A <: AbstractArray{Int})
+function unplug!(t::Tree, parent::Int, ns::A) where A <: AbstractArray{Int}
     for n in ns
         @assert(n ∈ t._nodes[parent].children)
         t._nodes[n].parent = 0
@@ -62,6 +65,16 @@ end
 function move!(t::Tree, n::Int, dest::Int)
     unplug!(t, n)
     plug!(t, dest, n)
+end
+
+function ascendance(t::Tree, n::Int)
+    x = n
+    r = [n]
+    while t[x].parent ≠ 0
+        x = t[x].parent
+        push!(r, x)
+    end
+    return r
 end
 
 function descendants(t::Tree, n)
@@ -98,6 +111,20 @@ function topo_depth(t::Tree, n::Int; state = 0)
     end
 end
 
+function mrca(t::Tree, nodes::A) where A <: AbstractArray{Int}
+    isempty(nodes) && return 0
+    length(nodes) == 1 && return first(nodes)
+
+    ancestries = [ascendance(t, n) for n in nodes]
+    for a in ancestries[1]
+        if all([a ∈ ancestry for ancestry in ancestries[2:end]])
+            return a
+        end
+    end
+
+    return 0
+end
+
 function prettyprint(t::Tree; start=1)
     function rec_disp(i, depth)
         println(' '^depth, t[i].pl)
@@ -109,8 +136,6 @@ function prettyprint(t::Tree; start=1)
 
     rec_disp(start, 0)
 end
-
-
 
 function tonewick(tree::Tree)
     function fmtTree(i::Int)::String
