@@ -8,8 +8,9 @@ end
 
 mutable struct Tree{T}
     _nodes::Dict{NodeID, Node{T}}
+    _spans::Dict{NodeID, Vector{NodeID}}
 end
-Tree{T}() where T = Tree{T}(Dict())
+Tree{T}() where T = Tree{T}(Dict(), Dict())
 
 Base.getindex(t::Tree, i::NodeID) = return t._nodes[i]
 Base.keys(t::Tree) = keys(t._nodes)
@@ -22,6 +23,14 @@ function maptree!(f, t::Tree)
         t[n].pl = f(t[n].pl)
     end
 end
+
+cached_span(t::Tree, n::NodeID) = t._spans[n]
+function cache_spans(t::Tree)
+    for k in keys(t._nodes)
+        t._spans[k] = descendant_leaves(t, k)
+    end
+end
+
 
 isroot(t::Tree, n) = t[n].parent == 0
 isleaf(t::Tree, n) = isempty(t._nodes[n].children)
