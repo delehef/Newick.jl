@@ -127,18 +127,20 @@ function topo_depth(t::Tree, n::NodeID; state = 0)
 end
 
 function mrca(t::Tree, nodes::A) where A <: AbstractSet{NodeID}
-    isempty(nodes) && return 0
-    length(nodes) == 1 && return first(nodes)
-
-    ancestries = [ascendance(t, n) for n in nodes]
-    for a in ancestries[1]
-        if all([a ∈ ancestry for ancestry in ancestries[2:end]])
-            return a
+    ancestors = ascendance(t, first(nodes))
+    ranks = Dict(j => i for (i,j) in enumerate(ancestors))
+    checked = Set(ancestors)
+    oldest = 1
+    for species in nodes
+        while !(species ∈ checked)
+            push!(checked, species)
+            species = parent(t, species)
         end
+        oldest = max(oldest, get(ranks, species, 0))
     end
-
-    return 0
+    ancestors[oldest]
 end
+
 
 function prettyprint(t::Tree; start=1)
     function rec_disp(i, depth)
