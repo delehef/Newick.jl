@@ -100,7 +100,7 @@ function descendants(t::Tree, n)
 end
 
 function descendant_leaves(t::Tree, n)
-    function rec_descendants(i, ax)
+    function rec_descendants(i :: NodeID, ax :: Set{NodeID})
         if isleaf(t, i)
             push!(ax, i)
         else
@@ -110,7 +110,8 @@ function descendant_leaves(t::Tree, n)
         end
     end
 
-    r = []
+    r = Set{NodeID}()
+    sizehint!(r, length(t._nodes)/2)
     rec_descendants(n, r)
     return r
 end
